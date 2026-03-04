@@ -2,12 +2,28 @@
 
 A simple, elegant Markdown reader built with Electron, TypeScript, and Vite — optimised for macOS.
 
+Recently updated to include **Local AI Chat Integration!** Turn any static markdown document into an interactive conversation without your data ever leaving your machine.
+
+## ✨ Features
+- **Fluid UI**: A beautiful two-pane interface optimized for an uncluttered reading environment. 
+- **Lightning Fast Rendering**: Powered by `marked`.
+- **Drag-and-Drop Navigation**: Bring files straight into your workspace.
+- **Local AI Chat Integration**: Ask questions about your markdown files using local LLMs (powered by Ollama).
+- **Semantic Auto-Updates**: Seamless background updates.
+
 ## Prerequisites
 
 Before you begin, ensure you have the following installed:
 
 - [Node.js](https://nodejs.org/) (LTS version recommended)
 - [npm](https://www.npmjs.com/) (bundled with Node.js)
+- **[Ollama](https://ollama.com/)** (Required for the AI Chat features)
+
+> **Important Setup for AI Features:**
+> Once Ollama is installed, you must open your terminal and pull the default model used by the application before the chat will respond:
+> ```bash
+> ollama pull granite4:latest
+> ```
 
 ## Getting Started
 
