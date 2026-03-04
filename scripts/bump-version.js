@@ -6,7 +6,7 @@ const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
 
 const now = new Date();
 const year = now.getFullYear();
-const month = String(now.getMonth() + 1).padStart(2, '0');
+const month = String(now.getMonth() + 1);
 const prefix = `${year}.${month}`;
 
 let newVersion;
