@@ -11,6 +11,7 @@ interface ElectronAPI {
   chatWithModel: (context: string, message: string, history: any[]) => Promise<string>;
   onChatChunk: (callback: (chunk: string) => void) => void;
   removeChatChunkListeners: () => void;
+  stopChatModel: () => void;
 }
 
 declare global {
@@ -35,6 +36,7 @@ let importedFiles: string[] = [];
 let currentFile: string | null = null;
 let chatHistory: any[] = [];
 let rawMarkdownContent: string = '';
+let isStreaming: boolean = false;
 
 const init = async () => {
   const version = await window.electronAPI.getAppVersion();
@@ -143,13 +145,31 @@ const appendMessage = (text: string, sender: 'me' | 'ai') => {
 let currentAiMessageDiv: HTMLDivElement | null = null;
 let currentAiResponse: string = '';
 
+const setStreamingState = (streaming: boolean) => {
+  isStreaming = streaming;
+  if (chatSendBtn) {
+    if (streaming) {
+      chatSendBtn.innerHTML = '&#9209;'; // Stop square symbol
+      chatSendBtn.classList.add('stop-mode');
+    } else {
+      chatSendBtn.textContent = 'Send';
+      chatSendBtn.classList.remove('stop-mode');
+    }
+  }
+};
+
 const handleChatSend = async () => {
+  if (isStreaming) {
+    window.electronAPI.stopChatModel();
+    return;
+  }
+
   if (!chatInput || !chatSendBtn) return;
   const message = chatInput.value.trim();
   if (!message || !rawMarkdownContent) return;
 
   chatInput.value = '';
-  chatSendBtn.disabled = true;
+  setStreamingState(true);
   appendMessage(message, 'me');
 
   currentAiMessageDiv = createMessageDiv('ai');
@@ -167,19 +187,21 @@ const handleChatSend = async () => {
 
   try {
     const response = await window.electronAPI.chatWithModel(rawMarkdownContent, message, chatHistory);
+    // When stream is stopped by user, response is ''
+    const finalText = response || currentAiResponse;
     if (currentAiMessageDiv) {
-      currentAiMessageDiv.innerHTML = marked.parse(response) as string;
+      currentAiMessageDiv.innerHTML = marked.parse(finalText) as string;
     }
     
     chatHistory.push({ role: 'user', content: message });
-    chatHistory.push({ role: 'assistant', content: response });
+    chatHistory.push({ role: 'assistant', content: finalText });
   } catch (error) {
     console.error("Chat error:", error);
     if (!currentAiResponse && currentAiMessageDiv) {
         currentAiMessageDiv.textContent = "Sorry, I encountered an error communicating with the model.";
     }
   } finally {
-    chatSendBtn.disabled = false;
+    setStreamingState(false);
     currentAiMessageDiv = null;
     chatInput.focus();
   }

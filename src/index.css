@@ -177,6 +177,12 @@ body {
   cursor: pointer;
 }
 
+#chat-send-btn.stop-mode {
+  background-color: #ff3b30; /* Red color to indicate stopping */
+  font-size: 1.2rem;
+  padding: 0 14px;
+}
+
 #chat-send-btn:disabled {
   background-color: #ccc;
   cursor: not-allowed;

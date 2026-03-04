@@ -226,7 +226,14 @@ ipcMain.handle('file:read', async (event, filePath: string) => {
   }
 });
 
+let activeChatAbortController: AbortController | null = null;
+
 ipcMain.handle('chat:model', async (event, contextText: string, message: string, history: any[]) => {
+  if (activeChatAbortController) {
+    activeChatAbortController.abort();
+  }
+  activeChatAbortController = new AbortController();
+
   try {
     const systemPrompt = `You are a helpful AI assistant. You are answering questions about the following markdown document:\n\n${contextText}`;
     // Prepare conversation messages
@@ -245,7 +252,8 @@ ipcMain.handle('chat:model', async (event, contextText: string, message: string,
     const response = await fetch('http://127.0.0.1:11434/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      signal: activeChatAbortController.signal
     });
 
     if (!response.ok) {
@@ -282,8 +290,21 @@ ipcMain.handle('chat:model', async (event, contextText: string, message: string,
 
     return fullContent;
   } catch (error: any) {
+    if (error.name === 'AbortError') {
+      console.log('Chat model streaming stopped by user.');
+      return '';
+    }
     console.error('SYSTEM ERROR in chat:model:', error);
     return `Error: Could not communicate with Ollama. Make sure it is running on http://127.0.0.1:11434. (Details: ${error.message})`;
+  } finally {
+    activeChatAbortController = null;
+  }
+});
+
+ipcMain.on('chat:model-stop', () => {
+  if (activeChatAbortController) {
+    activeChatAbortController.abort();
+    activeChatAbortController = null;
   }
 });
 

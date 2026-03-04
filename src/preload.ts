@@ -11,5 +11,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   removeChatChunkListeners: () => {
     ipcRenderer.removeAllListeners('chat:model-chunk');
-  }
+  },
+  stopChatModel: () => ipcRenderer.send('chat:model-stop')
 });
