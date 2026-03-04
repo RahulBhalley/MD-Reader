@@ -21,15 +21,18 @@ Before you begin, ensure you have the following installed on your macOS:
    npm install
    ```
 
-## Development
+## Development & Hot Reloading
 
-To start the application in development mode with live reloading and Chrome DevTools:
+To start the application in development mode with **Hot Module Replacement (HMR)** and live reloading:
 
 ```bash
 npm start
 ```
 
-This command uses [Electron Forge](https://www.electronforge.io/) to compile your TypeScript code via Webpack and launch the Electron process.
+This project uses the `@electron-forge/plugin-webpack`, which provides a seamless development experience:
+- **Renderer Process:** Changes to `src/renderer.ts`, `src/index.html`, or `src/index.css` will trigger an instant hot-reload of the UI without restarting the entire app.
+- **Main Process:** Changes to `src/index.ts` or `forge.config.ts` will automatically recompile and restart the Electron application.
+- **DevTools:** The Chrome Developer Tools will open automatically on launch to assist with debugging.
 
 ## Building and Packaging
 
