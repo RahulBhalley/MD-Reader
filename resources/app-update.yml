@@ -1,0 +1,4 @@
+provider: github
+owner: RahulBhalley
+repo: MD-Reader
+updaterCacheDirName: md-reader-updater

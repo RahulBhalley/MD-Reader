@@ -14,32 +14,65 @@ declare const MAIN_WINDOW_VITE_NAME: string;
 
 // Configure autoUpdater
 autoUpdater.autoDownload = true;
+autoUpdater.autoInstallOnAppQuit = true;
 
-// Custom logging for autoUpdater
-const sendStatusToWindow = (text: string) => {
-  console.log(text);
-};
+// Track whether the user manually triggered the check (vs. silent startup check)
+let manualUpdateCheck = false;
 
-autoUpdater.on('checking-for-update', () => sendStatusToWindow('Checking for update...'));
-autoUpdater.on('update-available', (info) => sendStatusToWindow('Update available.'));
-autoUpdater.on('update-not-available', (info) => sendStatusToWindow('Update not available.'));
-autoUpdater.on('error', (err) => sendStatusToWindow('Error in auto-updater: ' + err));
+autoUpdater.on('checking-for-update', () => {
+  console.log('Checking for update...');
+});
+
+autoUpdater.on('update-available', (info) => {
+  console.log('Update available:', info.version);
+  // autoDownload is true, so the download starts automatically.
+  // We don't need to notify here — the 'update-downloaded' event handles it.
+});
+
+autoUpdater.on('update-not-available', () => {
+  console.log('Update not available.');
+  // Only show a dialog if the user explicitly clicked "Check for Updates"
+  if (manualUpdateCheck) {
+    manualUpdateCheck = false;
+    dialog.showMessageBox({
+      type: 'info',
+      title: 'No Updates Available',
+      message: 'You are already on the latest version.',
+      buttons: ['OK'],
+    });
+  }
+});
+
+autoUpdater.on('error', (err) => {
+  console.error('Auto-updater error:', err);
+  if (manualUpdateCheck) {
+    manualUpdateCheck = false;
+    dialog.showMessageBox({
+      type: 'error',
+      title: 'Update Error',
+      message: 'Failed to check for updates.',
+      detail: err.message,
+      buttons: ['OK'],
+    });
+  }
+});
+
 autoUpdater.on('download-progress', (progressObj) => {
-  let log_message = "Download speed: " + progressObj.bytesPerSecond;
-  log_message = log_message + ' - Downloaded ' + progressObj.percent + '%';
-  log_message = log_message + ' (' + progressObj.transferred + "/" + progressObj.total + ')';
-  sendStatusToWindow(log_message);
+  const msg = `Downloading update: ${Math.round(progressObj.percent)}% ` +
+    `(${progressObj.transferred} / ${progressObj.total} bytes)`;
+  console.log(msg);
 });
 
 autoUpdater.on('update-downloaded', (info) => {
-  sendStatusToWindow('Update downloaded');
+  console.log('Update downloaded:', info.version);
   dialog.showMessageBox({
     type: 'info',
     title: 'Update Ready',
-    message: 'A new version has been downloaded. Restart the application to apply the updates.',
-    buttons: ['Restart', 'Later']
-  }).then((buttonIndex) => {
-    if (buttonIndex.response === 0) autoUpdater.quitAndInstall();
+    message: `Version ${info.version} has been downloaded.`,
+    detail: 'Restart the application to apply the update.',
+    buttons: ['Restart Now', 'Later'],
+  }).then((result) => {
+    if (result.response === 0) autoUpdater.quitAndInstall();
   });
 });
 
@@ -64,20 +97,13 @@ const createMenu = () => {
           label: 'Check for Updates...',
           click: () => {
             if (app.isPackaged) {
-              autoUpdater.checkForUpdatesAndNotify().then(result => {
-                if (result && result.updateInfo.version === app.getVersion()) {
-                  dialog.showMessageBox({
-                    title: 'No Updates',
-                    message: 'You are on the latest version.',
-                    type: 'info'
-                  });
-                }
-              });
+              manualUpdateCheck = true;
+              autoUpdater.checkForUpdates();
             } else {
               dialog.showMessageBox({
                 title: 'Development Mode',
                 message: 'Update check is only available in production builds.',
-                type: 'info'
+                type: 'info',
               });
             }
           }

@@ -6,23 +6,18 @@ import { MakerRpm } from '@electron-forge/maker-rpm';
 import { VitePlugin } from '@electron-forge/plugin-vite';
 import { FusesPlugin } from '@electron-forge/plugin-fuses';
 import { FuseV1Options, FuseVersion } from '@electron/fuses';
+import { PublisherGithub } from '@electron-forge/publisher-github';
 
 const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
+    extraResource: ['resources/app-update.yml'],
     ...(process.env.APPLE_ID && {
-      osxSign: {
-        optionsProvider: (cert: string) => ({
-          entitlements: 'entitlements.plist',
-          'entitlements-inherit': 'entitlements.plist',
-          hardenedRuntime: true,
-          gatekeeperAssess: false,
-        }),
-      },
+      osxSign: true,
       osxNotarize: {
-        appleId: process.env.APPLE_ID,
-        appleIdPassword: process.env.APPLE_ID_PASSWORD,
-        teamId: process.env.APPLE_TEAM_ID,
+        appleId: process.env.APPLE_ID as string,
+        appleIdPassword: process.env.APPLE_ID_PASSWORD as string,
+        teamId: process.env.APPLE_TEAM_ID as string,
       },
     }),
   },
@@ -32,6 +27,16 @@ const config: ForgeConfig = {
     new MakerDMG({}),
     new MakerRpm({}),
     new MakerDeb({}),
+  ],
+  publishers: [
+    new PublisherGithub({
+      repository: {
+        owner: 'RahulBhalley',
+        name: 'MD-Reader',
+      },
+      prerelease: false,
+      draft: true, // Creates a draft release so you can review before publishing
+    }),
   ],
   plugins: [
     new VitePlugin({
