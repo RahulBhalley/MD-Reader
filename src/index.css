@@ -75,6 +75,15 @@ body {
   color: #0056b3;
 }
 
+.sidebar-footer {
+  padding: 12px 16px;
+  border-top: 1px solid var(--sidebar-border);
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  text-align: right;
+  background-color: var(--sidebar-bg);
+}
+
 #viewer {
   flex-grow: 1;
   background-color: white;

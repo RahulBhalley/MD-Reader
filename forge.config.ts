@@ -10,12 +10,21 @@ import { FuseV1Options, FuseVersion } from '@electron/fuses';
 const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
-    osxSign: {},
-    osxNotarize: {
-      appleId: process.env.APPLE_ID,
-      appleIdPassword: process.env.APPLE_ID_PASSWORD,
-      teamId: process.env.APPLE_TEAM_ID,
-    },
+    ...(process.env.APPLE_ID && {
+      osxSign: {
+        optionsProvider: (cert: string) => ({
+          entitlements: 'entitlements.plist',
+          'entitlements-inherit': 'entitlements.plist',
+          hardenedRuntime: true,
+          gatekeeperAssess: false,
+        }),
+      },
+      osxNotarize: {
+        appleId: process.env.APPLE_ID,
+        appleIdPassword: process.env.APPLE_ID_PASSWORD,
+        teamId: process.env.APPLE_TEAM_ID,
+      },
+    }),
   },
   rebuildConfig: {},
   makers: [

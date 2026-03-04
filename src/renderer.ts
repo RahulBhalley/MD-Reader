@@ -7,6 +7,7 @@ interface ElectronAPI {
   openFileDialog: () => Promise<string[]>;
   readFile: (filePath: string) => Promise<string>;
   getPathForFile: (file: File) => string;
+  getAppVersion: () => Promise<string>;
 }
 
 declare global {
@@ -20,9 +21,19 @@ console.log('Renderer starting...');
 const fileList = document.getElementById('file-list') as HTMLUListElement;
 const importBtn = document.getElementById('import-btn') as HTMLButtonElement;
 const contentArea = document.getElementById('content-area') as HTMLDivElement;
+const versionInfo = document.getElementById('version-info') as HTMLSpanElement;
 
 let importedFiles: string[] = [];
 let currentFile: string | null = null;
+
+const init = async () => {
+  const version = await window.electronAPI.getAppVersion();
+  if (versionInfo) {
+    versionInfo.textContent = `v${version}`;
+  }
+};
+
+init();
 
 const renderFileList = () => {
   fileList.innerHTML = '';
