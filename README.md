@@ -65,20 +65,20 @@ This app uses [`electron-updater`](https://www.electron.build/auto-update) to de
 
 1. **Bump the version** in `package.json`:
    ```bash
-   # e.g. for a patch release
-   npm version patch   # or minor / major
+   npm version patch   # or: minor / major
    ```
 
-2. **Set your GitHub token** (needs `repo` scope — create one at [github.com/settings/tokens](https://github.com/settings/tokens)):
+2. **Export your GitHub token** (needs `repo` scope — create one at [github.com/settings/tokens](https://github.com/settings/tokens)):
    ```bash
-   export GITHUB_TOKEN=your_personal_access_token
+   export GITHUB_TOKEN=ghp_your_token_here
    ```
 
-3. **Build and publish:**
+3. **Run the publish script:**
    ```bash
-   npm run publish
+   npm run release
+   # or directly: ./scripts/publish.sh
    ```
-   This runs `electron-forge publish`, which builds the platform artifacts and uploads them to a **draft** GitHub Release tagged with the current version.
+   The script validates your token, shows the version, asks for confirmation, then runs `electron-forge publish` — which builds the platform artifacts and uploads them to a **draft** GitHub Release.
 
 4. **Review and publish the draft release** on [github.com/RahulBhalley/MD-Reader/releases](https://github.com/RahulBhalley/MD-Reader/releases).
    - Once published (not draft), existing app installations will detect the update on their next check.
@@ -100,6 +100,7 @@ This app uses [`electron-updater`](https://www.electron.build/auto-update) to de
 | `vite.renderer.config.ts` | Vite config for the renderer process |
 | `vite.base.config.ts` | Shared Vite base configuration |
 | `tsconfig.json` | TypeScript configuration |
+| `scripts/publish.sh` | Release script — validates `GITHUB_TOKEN`, confirms version, then runs `electron-forge publish` to upload a draft release to GitHub |
 | `resources/app-update.yml` | Update feed config for `electron-updater` — packaged into `Contents/Resources/` by Forge so the updater can find its GitHub source at runtime |
 | `entitlements.plist` | macOS entitlements for code signing |
 | `.editorconfig` | Consistent coding styles across editors |

@@ -18,6 +18,7 @@
     "make": "electron-forge make",
     "make:macos": "electron-forge make --platform=darwin",
     "publish": "electron-forge publish",
+    "release": "bash scripts/publish.sh",
     "lint": "eslint --ext .ts,.tsx ."
   },
   "keywords": [],
