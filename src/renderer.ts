@@ -9,6 +9,8 @@ interface ElectronAPI {
   getPathForFile: (file: File) => string;
   getAppVersion: () => Promise<string>;
   chatWithModel: (context: string, message: string, history: any[]) => Promise<string>;
+  onChatChunk: (callback: (chunk: string) => void) => void;
+  removeChatChunkListeners: () => void;
 }
 
 declare global {
@@ -116,18 +118,27 @@ dragDrop('body', (files: File[]) => {
   handleNewFiles(filePaths);
 });
 
-const appendMessage = (text: string, sender: 'me' | 'ai') => {
-  if (!chatMessages) return;
+const createMessageDiv = (sender: 'me' | 'ai') => {
+  if (!chatMessages) return null;
   const msgDiv = document.createElement('div');
   msgDiv.className = `chat-message ${sender}`;
+  chatMessages.appendChild(msgDiv);
+  chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
+  return msgDiv;
+};
+
+const appendMessage = (text: string, sender: 'me' | 'ai') => {
+  const msgDiv = createMessageDiv(sender);
+  if (!msgDiv) return;
   if (sender === 'ai') {
     msgDiv.innerHTML = marked.parse(text) as string;
   } else {
     msgDiv.textContent = text;
   }
-  chatMessages.appendChild(msgDiv);
-  chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
 };
+
+let currentAiMessageDiv: HTMLDivElement | null = null;
+let currentAiResponse: string = '';
 
 const handleChatSend = async () => {
   if (!chatInput || !chatSendBtn) return;
@@ -138,17 +149,33 @@ const handleChatSend = async () => {
   chatSendBtn.disabled = true;
   appendMessage(message, 'me');
 
+  currentAiMessageDiv = createMessageDiv('ai');
+  currentAiResponse = '';
+
+  window.electronAPI.removeChatChunkListeners();
+  window.electronAPI.onChatChunk((chunk: string) => {
+    if (!currentAiMessageDiv) return;
+    currentAiResponse += chunk;
+    currentAiMessageDiv.innerHTML = marked.parse(currentAiResponse) as string;
+    chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'instant' });
+  });
+
   try {
     const response = await window.electronAPI.chatWithModel(rawMarkdownContent, message, chatHistory);
-    appendMessage(response, 'ai');
+    if (currentAiMessageDiv) {
+      currentAiMessageDiv.innerHTML = marked.parse(response) as string;
+    }
     
     chatHistory.push({ role: 'user', content: message });
     chatHistory.push({ role: 'assistant', content: response });
   } catch (error) {
     console.error("Chat error:", error);
-    appendMessage("Sorry, I encountered an error communicating with the model.", 'ai');
+    if (!currentAiResponse && currentAiMessageDiv) {
+        currentAiMessageDiv.textContent = "Sorry, I encountered an error communicating with the model.";
+    }
   } finally {
     chatSendBtn.disabled = false;
+    currentAiMessageDiv = null;
     chatInput.focus();
   }
 };

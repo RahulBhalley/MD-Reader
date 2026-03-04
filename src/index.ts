@@ -239,7 +239,7 @@ ipcMain.handle('chat:model', async (event, contextText: string, message: string,
     const payload = {
       model: "granite4:latest", // Configurable default for Granite
       messages: messages,
-      stream: false
+      stream: true
     };
 
     const response = await fetch('http://127.0.0.1:11434/api/chat', {
@@ -252,8 +252,35 @@ ipcMain.handle('chat:model', async (event, contextText: string, message: string,
       throw new Error(`Ollama API error: ${response.statusText}`);
     }
 
-    const data = await response.json();
-    return data.message.content;
+    if (!response.body) {
+      throw new Error('Response body is null');
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder('utf-8');
+    let fullContent = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      const chunkText = decoder.decode(value, { stream: true });
+      const lines = chunkText.split('\n').filter(l => l.trim().length > 0);
+      
+      for (const line of lines) {
+        try {
+          const json = JSON.parse(line);
+          if (json.message && typeof json.message.content === 'string') {
+            fullContent += json.message.content;
+            event.sender.send('chat:model-chunk', json.message.content);
+          }
+        } catch (e) {
+          // Ignore partial parse failures
+        }
+      }
+    }
+
+    return fullContent;
   } catch (error: any) {
     console.error('SYSTEM ERROR in chat:model:', error);
     return `Error: Could not communicate with Ollama. Make sure it is running on http://127.0.0.1:11434. (Details: ${error.message})`;

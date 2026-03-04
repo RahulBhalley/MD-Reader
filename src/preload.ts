@@ -6,4 +6,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getPathForFile: (file: File) => webUtils.getPathForFile(file),
   getAppVersion: () => ipcRenderer.invoke('app:version'),
   chatWithModel: (context: string, message: string, history: any[]) => ipcRenderer.invoke('chat:model', context, message, history),
+  onChatChunk: (callback: (chunk: string) => void) => {
+    ipcRenderer.on('chat:model-chunk', (_event, chunk) => callback(chunk));
+  },
+  removeChatChunkListeners: () => {
+    ipcRenderer.removeAllListeners('chat:model-chunk');
+  }
 });
