@@ -26,6 +26,7 @@ const importBtn = document.getElementById('import-btn') as HTMLButtonElement;
 const contentArea = document.getElementById('content-area') as HTMLDivElement;
 const versionInfo = document.getElementById('version-info') as HTMLSpanElement;
 
+const scrollableContent = document.getElementById('scrollable-content') as HTMLDivElement;
 const chatMessages = document.getElementById('chat-messages') as HTMLDivElement;
 const chatInput = document.getElementById('chat-input') as HTMLInputElement;
 const chatSendBtn = document.getElementById('chat-send-btn') as HTMLButtonElement;
@@ -123,7 +124,9 @@ const createMessageDiv = (sender: 'me' | 'ai') => {
   const msgDiv = document.createElement('div');
   msgDiv.className = `chat-message ${sender}`;
   chatMessages.appendChild(msgDiv);
-  chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
+  if (scrollableContent) {
+    scrollableContent.scrollTo({ top: scrollableContent.scrollHeight, behavior: 'smooth' });
+  }
   return msgDiv;
 };
 
@@ -157,7 +160,9 @@ const handleChatSend = async () => {
     if (!currentAiMessageDiv) return;
     currentAiResponse += chunk;
     currentAiMessageDiv.innerHTML = marked.parse(currentAiResponse) as string;
-    chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'instant' });
+    if (scrollableContent) {
+      scrollableContent.scrollTo({ top: scrollableContent.scrollHeight, behavior: 'instant' });
+    }
   });
 
   try {
