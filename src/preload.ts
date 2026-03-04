@@ -5,4 +5,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   readFile: (filePath: string) => ipcRenderer.invoke('file:read', filePath),
   getPathForFile: (file: File) => webUtils.getPathForFile(file),
   getAppVersion: () => ipcRenderer.invoke('app:version'),
+  chatWithModel: (context: string, message: string, history: any[]) => ipcRenderer.invoke('chat:model', context, message, history),
 });

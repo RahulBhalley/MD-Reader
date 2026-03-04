@@ -8,6 +8,7 @@ interface ElectronAPI {
   readFile: (filePath: string) => Promise<string>;
   getPathForFile: (file: File) => string;
   getAppVersion: () => Promise<string>;
+  chatWithModel: (context: string, message: string, history: any[]) => Promise<string>;
 }
 
 declare global {
@@ -23,8 +24,14 @@ const importBtn = document.getElementById('import-btn') as HTMLButtonElement;
 const contentArea = document.getElementById('content-area') as HTMLDivElement;
 const versionInfo = document.getElementById('version-info') as HTMLSpanElement;
 
+const chatMessages = document.getElementById('chat-messages') as HTMLDivElement;
+const chatInput = document.getElementById('chat-input') as HTMLInputElement;
+const chatSendBtn = document.getElementById('chat-send-btn') as HTMLButtonElement;
+
 let importedFiles: string[] = [];
 let currentFile: string | null = null;
+let chatHistory: any[] = [];
+let rawMarkdownContent: string = '';
 
 const init = async () => {
   const version = await window.electronAPI.getAppVersion();
@@ -54,8 +61,15 @@ const selectFile = async (filePath: string) => {
   renderFileList();
   
   const content = await window.electronAPI.readFile(filePath);
+  rawMarkdownContent = content; // Save for chat context
   const htmlContent = marked.parse(content);
   contentArea.innerHTML = htmlContent as string;
+
+  // Reset chat
+  chatHistory = [];
+  if (chatMessages) {
+    chatMessages.innerHTML = '';
+  }
 };
 
 const handleNewFiles = (filePaths: string[]) => {
@@ -101,5 +115,53 @@ dragDrop('body', (files: File[]) => {
   });
   handleNewFiles(filePaths);
 });
+
+const appendMessage = (text: string, sender: 'me' | 'ai') => {
+  if (!chatMessages) return;
+  const msgDiv = document.createElement('div');
+  msgDiv.className = `chat-message ${sender}`;
+  if (sender === 'ai') {
+    msgDiv.innerHTML = marked.parse(text) as string;
+  } else {
+    msgDiv.textContent = text;
+  }
+  chatMessages.appendChild(msgDiv);
+  chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
+};
+
+const handleChatSend = async () => {
+  if (!chatInput || !chatSendBtn) return;
+  const message = chatInput.value.trim();
+  if (!message || !rawMarkdownContent) return;
+
+  chatInput.value = '';
+  chatSendBtn.disabled = true;
+  appendMessage(message, 'me');
+
+  try {
+    const response = await window.electronAPI.chatWithModel(rawMarkdownContent, message, chatHistory);
+    appendMessage(response, 'ai');
+    
+    chatHistory.push({ role: 'user', content: message });
+    chatHistory.push({ role: 'assistant', content: response });
+  } catch (error) {
+    console.error("Chat error:", error);
+    appendMessage("Sorry, I encountered an error communicating with the model.", 'ai');
+  } finally {
+    chatSendBtn.disabled = false;
+    chatInput.focus();
+  }
+};
+
+if (chatSendBtn) {
+  chatSendBtn.addEventListener('click', handleChatSend);
+}
+if (chatInput) {
+  chatInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      handleChatSend();
+    }
+  });
+}
 
 console.log('Renderer initialized and ready');

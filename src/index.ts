@@ -226,6 +226,40 @@ ipcMain.handle('file:read', async (event, filePath: string) => {
   }
 });
 
+ipcMain.handle('chat:model', async (event, contextText: string, message: string, history: any[]) => {
+  try {
+    const systemPrompt = `You are a helpful AI assistant. You are answering questions about the following markdown document:\n\n${contextText}`;
+    // Prepare conversation messages
+    const messages = [
+      { role: "system", content: systemPrompt },
+      ...history,
+      { role: "user", content: message }
+    ];
+
+    const payload = {
+      model: "granite4:latest", // Configurable default for Granite
+      messages: messages,
+      stream: false
+    };
+
+    const response = await fetch('http://127.0.0.1:11434/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      throw new Error(`Ollama API error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.message.content;
+  } catch (error: any) {
+    console.error('SYSTEM ERROR in chat:model:', error);
+    return `Error: Could not communicate with Ollama. Make sure it is running on http://127.0.0.1:11434. (Details: ${error.message})`;
+  }
+});
+
 app.on('ready', createWindow);
 
 app.on('window-all-closed', () => {
