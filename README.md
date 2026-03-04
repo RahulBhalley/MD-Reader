@@ -1,6 +1,6 @@
 # MD-Reader
 
-A simple Electron application built with TypeScript and Webpack.
+A simple Electron application built with TypeScript and Webpack, optimized for macOS.
 
 ## Prerequisites
 
@@ -33,10 +33,17 @@ This command uses [Electron Forge](https://www.electronforge.io/) to compile you
 
 ## Building and Packaging
 
-To package the application into a distributable format (e.g., a `.app` or `.dmg` for macOS):
+To package the application into a distributable format for all configured platforms:
 
 ```bash
 npm run make
+```
+
+### macOS Specific Build
+To specifically build for macOS (generates both `.dmg` and `.app` files):
+
+```bash
+npm run make:macos
 ```
 
 The output will be located in the `out/` directory.
@@ -51,15 +58,19 @@ The output will be located in the `out/` directory.
 - `forge.config.ts`: Configuration for Electron Forge (build settings, makers, plugins).
 - `tsconfig.json`: TypeScript configuration.
 - `webpack.*.config.ts`: Webpack configurations for the main and renderer processes.
+- `.vscode/`: Recommended VS Code extensions and settings for automatic formatting.
+- `.editorconfig`: Consistent coding styles across editors.
+- `LICENSE`: MIT License.
 
-## Linting
+## Linting and Formatting
 
-To check the code for potential errors and style issues:
-
+To check the code for potential errors:
 ```bash
 npm run lint
 ```
 
+If you are using VS Code, the project is configured to automatically format and lint your code on save using ESLint and Prettier.
+
 ## License
 
-This project is licensed under the MIT License - see the [package.json](package.json) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
