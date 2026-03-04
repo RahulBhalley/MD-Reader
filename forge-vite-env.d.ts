@@ -18,3 +18,4 @@ declare global {
     }
   }
 }
+declare module 'drag-drop';

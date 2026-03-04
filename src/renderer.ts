@@ -1,10 +1,12 @@
 import './index.css';
 import { marked } from 'marked';
+import dragDrop from 'drag-drop';
 
 // TypeScript interface for the exposed API from preload
 interface ElectronAPI {
   openFileDialog: () => Promise<string[]>;
   readFile: (filePath: string) => Promise<string>;
+  getPathForFile: (file: File) => string;
 }
 
 declare global {
@@ -45,6 +47,17 @@ const selectFile = async (filePath: string) => {
   contentArea.innerHTML = htmlContent as string;
 };
 
+const handleNewFiles = (filePaths: string[]) => {
+  if (filePaths && filePaths.length > 0) {
+    const newFiles = filePaths.filter(f => !importedFiles.includes(f));
+    importedFiles = [...importedFiles, ...newFiles];
+    renderFileList();
+    if (newFiles.length > 0) {
+      selectFile(newFiles[0]);
+    }
+  }
+};
+
 importBtn.onclick = async () => {
   console.log('Import button clicked');
   
@@ -58,18 +71,24 @@ importBtn.onclick = async () => {
     console.log('Calling openFileDialog...');
     const filePaths = await window.electronAPI.openFileDialog();
     console.log('Files selected:', filePaths);
-    
-    if (filePaths && filePaths.length > 0) {
-      const newFiles = filePaths.filter(f => !importedFiles.includes(f));
-      importedFiles = [...importedFiles, ...newFiles];
-      renderFileList();
-      if (newFiles.length > 0) {
-        selectFile(newFiles[0]);
-      }
-    }
+    handleNewFiles(filePaths);
   } catch (err) {
     console.error('Error during file dialog:', err);
   }
 };
+
+// Drag and drop support using drag-drop library
+dragDrop('body', (files: File[]) => {
+  const filePaths: string[] = [];
+  files.forEach((file: File) => {
+    if (file.name.toLowerCase().endsWith('.md') || file.name.toLowerCase().endsWith('.markdown')) {
+      const path = window.electronAPI.getPathForFile(file);
+      if (path) {
+        filePaths.push(path);
+      }
+    }
+  });
+  handleNewFiles(filePaths);
+});
 
 console.log('Renderer initialized and ready');
