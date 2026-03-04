@@ -8,7 +8,7 @@
     }
   },
   "productName": "md-reader",
-  "version": "1.0.0",
+  "version": "2026.03.1",
   "description": "My Electron application description",
   "main": ".vite/build/index.js",
   "private": true,
@@ -19,6 +19,8 @@
     "make:macos": "electron-forge make --platform=darwin",
     "publish": "electron-forge publish",
     "release": "bash scripts/publish.sh",
+    "bump": "node scripts/bump-version.js",
+    "bump-down": "node scripts/bump-down.js",
     "lint": "eslint --ext .ts,.tsx ."
   },
   "keywords": [],

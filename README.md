@@ -63,9 +63,11 @@ This app uses [`electron-updater`](https://www.electron.build/auto-update) to de
 
 ### Steps to Publish a New Version
 
-1. **Bump the version** in `package.json`:
+1. **Bump the version** automatically using the custom versioning scheme (`YYYY.MM.increment`):
    ```bash
-   npm version patch   # or: minor / major
+   npm run bump        # Increments the version (e.g., 2026.03.1 -> 2026.03.2)
+   # or
+   npm run bump-down   # Decrements the version (e.g., 2026.03.2 -> 2026.03.1)
    ```
 
 2. **Export your GitHub token** (needs `repo` scope — create one at [github.com/settings/tokens](https://github.com/settings/tokens)):
@@ -89,11 +91,11 @@ This app uses [`electron-updater`](https://www.electron.build/auto-update) to de
 
 | Path | Description |
 |------|-------------|
-| `src/index.ts` | **Main process** — app lifecycle, window creation, auto-updater, IPC handlers |
+| `src/index.ts` | **Main process** — app lifecycle, window creation, auto-updater, IPC handlers for Ollama chat |
 | `src/preload.ts` | **Preload script** — secure bridge between main and renderer via `contextBridge` |
-| `src/renderer.ts` | **Renderer process** — UI logic |
+| `src/renderer.ts` | **Renderer process** — UI logic and chat interaction |
 | `index.html` | Root HTML entry point (Vite root) |
-| `src/index.css` | Global styles |
+| `src/index.css` | Global styles including chat UI |
 | `forge.config.ts` | Electron Forge configuration (makers, publishers, plugins) |
 | `vite.main.config.ts` | Vite config for the main process |
 | `vite.preload.config.ts` | Vite config for the preload script |
@@ -101,10 +103,26 @@ This app uses [`electron-updater`](https://www.electron.build/auto-update) to de
 | `vite.base.config.ts` | Shared Vite base configuration |
 | `tsconfig.json` | TypeScript configuration |
 | `scripts/publish.sh` | Release script — validates `GITHUB_TOKEN`, confirms version, then runs `electron-forge publish` to upload a draft release to GitHub |
-| `resources/app-update.yml` | Update feed config for `electron-updater` — packaged into `Contents/Resources/` by Forge so the updater can find its GitHub source at runtime |
+| `scripts/bump-version.js` | Version increment script (`YYYY.MM.increment` scheme) |
+| `scripts/bump-down.js` | Version decrement script |
+| `resources/app-update.yml` | Update feed config for `electron-updater` |
 | `entitlements.plist` | macOS entitlements for code signing |
 | `.editorconfig` | Consistent coding styles across editors |
 | `.vscode/` | Recommended VS Code extensions and settings |
+
+## Available Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm start` | Run the application in development mode with HMR |
+| `npm run lint` | Run ESLint to check for code quality issues |
+| `npm run package` | Package the application into an executable |
+| `npm run make` | Create distributable installers for all platforms |
+| `npm run make:macos` | Create `.dmg` and `.app` for macOS |
+| `npm run bump` | Increment app version using `YYYY.MM.n` scheme |
+| `npm run bump-down` | Decrement app version |
+| `npm run publish` | Run `electron-forge publish` directly |
+| `npm run release` | Run the full publishing workflow (validation -> build -> upload draft) |
 
 ## Dependencies
 
