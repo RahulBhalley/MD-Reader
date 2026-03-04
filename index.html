@@ -2,11 +2,25 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>Hello World!</title>
+    <title>MD-Reader</title>
   </head>
   <body>
-    <h1>💖 Hello World!</h1>
-    <p>Welcome to your Electron application.</p>
+    <div id="app">
+      <nav id="sidebar">
+        <div class="sidebar-header">
+          <h3>MD-Reader</h3>
+          <button id="import-btn">Import MD Files</button>
+        </div>
+        <ul id="file-list">
+          <!-- Imported files will appear here -->
+        </ul>
+      </nav>
+      <main id="viewer">
+        <div id="content-area">
+          <p class="placeholder">Select a file from the sidebar to start reading.</p>
+        </div>
+      </main>
+    </div>
     <script type="module" src="/src/renderer.ts"></script>
   </body>
 </html>

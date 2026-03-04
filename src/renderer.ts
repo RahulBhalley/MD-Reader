@@ -1,33 +1,75 @@
-/**
- * This file will automatically be loaded by webpack and run in the "renderer" context.
- * To learn more about the differences between the "main" and the "renderer" context in
- * Electron, visit:
- *
- * https://electronjs.org/docs/latest/tutorial/process-model
- *
- * By default, Node.js integration in this file is disabled. When enabling Node.js integration
- * in a renderer process, please be aware of potential security implications. You can read
- * more about security risks here:
- *
- * https://electronjs.org/docs/tutorial/security
- *
- * To enable Node.js integration in this file, open up `main.js` and enable the `nodeIntegration`
- * flag:
- *
- * ```
- *  // Create the browser window.
- *  mainWindow = new BrowserWindow({
- *    width: 800,
- *    height: 600,
- *    webPreferences: {
- *      nodeIntegration: true
- *    }
- *  });
- * ```
- */
-
 import './index.css';
+import { marked } from 'marked';
 
-console.log(
-  '👋 This message is being logged by "renderer.js", included via webpack',
-);
+// TypeScript interface for the exposed API from preload
+interface ElectronAPI {
+  openFileDialog: () => Promise<string[]>;
+  readFile: (filePath: string) => Promise<string>;
+}
+
+declare global {
+  interface Window {
+    electronAPI: ElectronAPI;
+  }
+}
+
+console.log('Renderer starting...');
+
+const fileList = document.getElementById('file-list') as HTMLUListElement;
+const importBtn = document.getElementById('import-btn') as HTMLButtonElement;
+const contentArea = document.getElementById('content-area') as HTMLDivElement;
+
+let importedFiles: string[] = [];
+let currentFile: string | null = null;
+
+const renderFileList = () => {
+  fileList.innerHTML = '';
+  importedFiles.forEach((filePath) => {
+    const fileName = filePath.split('/').pop() || filePath;
+    const li = document.createElement('li');
+    li.className = 'file-item';
+    if (currentFile === filePath) li.classList.add('active');
+    li.textContent = fileName;
+    li.title = filePath;
+    li.onclick = () => selectFile(filePath);
+    fileList.appendChild(li);
+  });
+};
+
+const selectFile = async (filePath: string) => {
+  currentFile = filePath;
+  renderFileList();
+  
+  const content = await window.electronAPI.readFile(filePath);
+  const htmlContent = marked.parse(content);
+  contentArea.innerHTML = htmlContent as string;
+};
+
+importBtn.onclick = async () => {
+  console.log('Import button clicked');
+  
+  if (!window.electronAPI) {
+    console.error('electronAPI is not found! Preload script failed to load.');
+    alert('Communication error: cannot access system files.');
+    return;
+  }
+
+  try {
+    console.log('Calling openFileDialog...');
+    const filePaths = await window.electronAPI.openFileDialog();
+    console.log('Files selected:', filePaths);
+    
+    if (filePaths && filePaths.length > 0) {
+      const newFiles = filePaths.filter(f => !importedFiles.includes(f));
+      importedFiles = [...importedFiles, ...newFiles];
+      renderFileList();
+      if (newFiles.length > 0) {
+        selectFile(newFiles[0]);
+      }
+    }
+  } catch (err) {
+    console.error('Error during file dialog:', err);
+  }
+};
+
+console.log('Renderer initialized and ready');
