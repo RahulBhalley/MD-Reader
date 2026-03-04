@@ -3,7 +3,7 @@
   "productName": "md-reader",
   "version": "1.0.0",
   "description": "My Electron application description",
-  "main": ".webpack/main",
+  "main": ".vite/build/main.js",
   "private": true,
   "scripts": {
     "start": "electron-forge start",
@@ -28,19 +28,16 @@
     "@electron-forge/maker-zip": "^7.11.1",
     "@electron-forge/plugin-auto-unpack-natives": "^7.11.1",
     "@electron-forge/plugin-fuses": "^7.11.1",
-    "@electron-forge/plugin-webpack": "^7.11.1",
+    "@electron-forge/plugin-vite": "^7.11.1",
+    "@electron-forge/template-vite-typescript": "^7.11.1",
     "@electron/fuses": "^1.8.0",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
-    "@vercel/webpack-asset-relocator-loader": "^1.7.3",
-    "css-loader": "^6.11.0",
-    "electron": "40.6.1",
+    "electron": "^40.6.1",
     "eslint": "^8.57.1",
     "eslint-plugin-import": "^2.32.0",
-    "node-loader": "^2.1.0",
-    "style-loader": "^3.3.4",
-    "ts-loader": "^9.5.4",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1"
   },
   "dependencies": {
     "electron-squirrel-startup": "^1.0.1"
