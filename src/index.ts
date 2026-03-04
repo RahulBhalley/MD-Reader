@@ -3,6 +3,12 @@ import { autoUpdater } from 'electron-updater';
 import * as path from 'path';
 import * as fs from 'fs';
 
+// Handle creating/removing shortcuts on Windows when installing/uninstalling.
+// electron-squirrel-startup is Windows-only; guard to avoid module-not-found on macOS/Linux.
+if (process.platform === 'win32' && require('electron-squirrel-startup')) {
+  app.quit();
+}
+
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string;
 declare const MAIN_WINDOW_VITE_NAME: string;
 
