@@ -1,6 +1,6 @@
 # MD-Reader
 
-A simple Electron application built with TypeScript and Webpack, optimized for macOS.
+A simple Electron application built with TypeScript and Vite, optimized for macOS.
 
 ## Prerequisites
 
@@ -23,16 +23,16 @@ Before you begin, ensure you have the following installed on your macOS:
 
 ## Development & Hot Reloading
 
-To start the application in development mode with **Hot Module Replacement (HMR)** and live reloading:
+To start the application in development mode with **Vite's ultra-fast Hot Module Replacement (HMR)**:
 
 ```bash
 npm start
 ```
 
-This project uses the `@electron-forge/plugin-webpack`, which provides a seamless development experience:
-- **Renderer Process:** Changes to `src/renderer.ts`, `src/index.html`, or `src/index.css` will trigger an instant hot-reload of the UI without restarting the entire app.
+This project uses the `@electron-forge/plugin-vite`, providing a modern development experience:
+- **Renderer Process:** Changes to `src/renderer.ts`, `index.html`, or `src/index.css` will trigger near-instant updates in the app window.
 - **Main Process:** Changes to `src/index.ts` or `forge.config.ts` will automatically recompile and restart the Electron application.
-- **DevTools:** The Chrome Developer Tools will open automatically on launch to assist with debugging.
+- **DevTools:** Chrome Developer Tools open automatically on launch for debugging.
 
 ## Building and Packaging
 
@@ -54,13 +54,13 @@ The output will be located in the `out/` directory.
 ## Project Structure
 
 - `src/index.ts`: The **Main Process**. Controls the app lifecycle and creates browser windows.
-- `src/renderer.ts`: The **Renderer Process**. Handles the UI logic (imported into `index.html`).
-- `src/preload.ts`: The **Preload Script**. A secure bridge between the main and renderer processes.
-- `src/index.html`: The main entry point for the UI.
+- `src/renderer.ts`: The **Renderer Process**. Handles the UI logic (imported via `index.html`).
+- `index.html`: The main entry point for the UI (Vite root).
 - `src/index.css`: Global styles for the application.
 - `forge.config.ts`: Configuration for Electron Forge (build settings, makers, plugins).
+- `vite.main.config.ts`: Vite configuration for the Main process.
+- `vite.renderer.config.ts`: Vite configuration for the Renderer process.
 - `tsconfig.json`: TypeScript configuration.
-- `webpack.*.config.ts`: Webpack configurations for the main and renderer processes.
 - `.vscode/`: Recommended VS Code extensions and settings for automatic formatting.
 - `.editorconfig`: Consistent coding styles across editors.
 - `LICENSE`: MIT License.
